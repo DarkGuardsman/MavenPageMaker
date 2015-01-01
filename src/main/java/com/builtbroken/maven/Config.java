@@ -21,7 +21,7 @@ public class Config
         {
             if(!file.getParentFile().exists())
             {
-                file.mkdirs();
+                file.getParentFile().mkdirs();
             }
             FileOutputStream out = new FileOutputStream(file);
             props.setProperty("maven", "http://ci.builtbroken.com/maven");
