@@ -3,6 +3,7 @@ package com.builtbroken.maven;
 import com.builtbroken.maven.page.PageBuilder;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
 import java.net.MalformedURLException;
 
 /**
@@ -10,12 +11,14 @@ import java.net.MalformedURLException;
  */
 public class Main
 {
+    //-maven http://ci.builtbroken.com/maven -group icbm -id ICBM -adfly 2380428
     public static void main(String... args) throws ParserConfigurationException
     {
         String maven_url_string = "";
         String maven_group = "";
         String maven_id = "";
         String adfly_id = "";
+        File output_folder = new File(System.getProperty("user.dir"), "html");;
 
         if (args != null && args.length > 0)
         {
@@ -64,28 +67,32 @@ public class Main
                     throw new IllegalArgumentException("Invalid program argument " + s);
                 }
             }
-
-            PageBuilder build = new PageBuilder(maven_url_string, maven_group, maven_id);
-            if(!adfly_id.isEmpty())
-                build.setAdfly_id(adfly_id);
-
-            try
-            {
-                build.buildPage();
-            }
-            catch (MalformedURLException e)
-            {
-                System.out.println("Bad URL");
-                e.printStackTrace();
-            }
         }
         else
         {
-            throw new IllegalArgumentException("No program argument given run with -help");
+            Config config = new Config(new File(output_folder, "settings.config"));
+            if(!config.load())
+            {
+                config.create();
+            }
+            maven_url_string = config.maven_url_string();
+            maven_id = config.maven_id();
+            maven_group = config.maven_group();
+            adfly_id = config.adfly_id();
         }
 
+        PageBuilder build = new PageBuilder(output_folder, maven_url_string, maven_group, maven_id);
+        if(!adfly_id.isEmpty())
+            build.setAdfly_id(adfly_id);
 
+        try
+        {
+            build.buildPage();
+        }
+        catch (MalformedURLException e)
+        {
+            System.out.println("Bad URL");
+            e.printStackTrace();
+        }
     }
-
-
 }

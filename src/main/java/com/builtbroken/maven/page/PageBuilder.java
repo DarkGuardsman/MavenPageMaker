@@ -35,16 +35,16 @@ public class PageBuilder
 
     private File output_folder;
 
-    public PageBuilder(String maven_url, String maven_group, String maven_id)
+    public PageBuilder(File output_folder, String maven_url, String maven_group, String maven_id)
     {
-        this.maven_url_string = maven_url + (!maven_url.endsWith("/") ? "/" : "");
+        this.output_folder = output_folder;
+        this.maven_url_string = (!maven_url.startsWith("http://") ? "http://" : "") + maven_url + (!maven_url.endsWith("/") ? "/" : "");
         this.maven_group = maven_group;
         this.maven_id = maven_id;
         this.url_string = maven_url_string + maven_group + "/" + maven_id + "/";
         file_patterns_to_load = new ArrayList();
         file_patterns_to_load.add("$I-$V.jar");
         file_patterns_to_load.add("$I-$V-deobf.jar");
-        output_folder = new File(System.getProperty("user.dir"), "html");
     }
 
     public void buildPage() throws MalformedURLException
