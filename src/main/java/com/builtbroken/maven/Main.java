@@ -37,6 +37,10 @@ public class Main
                     }
                     else if (next_s != null)
                     {
+                        if(valid)
+                        {
+                            i++;
+                        }
                         if (var.equalsIgnoreCase("maven"))
                         {
                             maven_url_string = next_s;

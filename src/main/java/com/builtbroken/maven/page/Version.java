@@ -17,6 +17,7 @@ public class Version
 
     public Version(String version_line)
     {
+        this.original_entry = version_line;
         setCategory(version_line.substring(0, version_line.indexOf("-")));
         setVersion(version_line.substring(version_line.indexOf("-") + 1, version_line.indexOf("b")));
         setBuild(version_line.substring(version_line.indexOf("b") + 1, version_line.length()));
@@ -26,7 +27,8 @@ public class Version
     {
         //Turn pattern into links
         List<String> file_names = new ArrayList();
-        String html = "<tr><td><span>" + getVersion() + "</span></br>#" + getBuild() + "<ul>";
+        String html = "\n\t<tr>\n\t\t<td><span>" + getVersion() + "</span></br>#" + getBuild() +"</td><td>";
+        html += "\n\t\t\t<ul>";
         for (String pattern : getBuilder().file_patterns_to_load)
         {
             //Creates the file link
@@ -45,9 +47,9 @@ public class Version
                 link_name = "http://adf.ly/" + builder.getAdfly_id() + "/";
             }
             link_name = builder.url_string + link_name;
-            html += "<li><a href=\"" + link_name + "\" target=\"_blank\">" + display_name + "</a></li>";
+            html += "\n\t\t\t\t<li><a href=\"" + link_name + "\" target=\"_blank\">" + display_name + "</a></li>";
         }
-        html += "</ul></td></tr>";
+        html += "\n\t\t\t</ul>\n\t\t</td>\n\t</tr>";
         return html;
     }
 

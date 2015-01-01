@@ -37,20 +37,24 @@ public class PageBuilder
 
     public PageBuilder(String maven_url, String maven_group, String maven_id)
     {
-        this.maven_url_string = maven_url;
+        this.maven_url_string = maven_url + (!maven_url.endsWith("/") ? "/" : "");
         this.maven_group = maven_group;
-        this.maven_id = maven_id + (!maven_url_string.endsWith("/") ? "/" : "");
+        this.maven_id = maven_id;
         this.url_string = maven_url_string + maven_group + "/" + maven_id + "/";
         file_patterns_to_load = new ArrayList();
         file_patterns_to_load.add("$I-$V.jar");
         file_patterns_to_load.add("$I-$V-deobf.jar");
-        output_folder = new File(".", "html");
+        output_folder = new File(System.getProperty("user.dir"), "html");
     }
 
     public void buildPage() throws MalformedURLException
     {
         System.out.println("Generating page for " + url_string);
         maven_xml_url = new URL(url_string + "maven-metadata.xml");
+        if(!output_folder.exists())
+        {
+            output_folder.mkdirs();
+        }
         buildHtmlTable(maven_xml_url);
         System.out.println("Done!");
     }
