@@ -39,10 +39,11 @@ public class Page extends ArrayList<Version>
     protected void outputHeader(BufferedWriter output) throws IOException
     {
         output.write("<!--Generated using Maven Download Page Maker by Robert Seifert-->");
-        output.write("\n<!--Created on " + new Date() + "-->");
+        output.write("\n<!--Project github https://github.com/DarkGuardsman/MavenPageMaker -->");
+        output.write("\n<!--Page Created on " + new Date() + "-->");
         output.write("\n<div id=\"maven-build-div-" + version + "\" class=\"maven-downloads\">");
         output.write("\n<h3> Minecraft " + version + "Downloads </h3>");
-        output.write("\n<table id=\"maven-build-table-" + version + "\">");
+        output.write("\n\t<table id=\"maven-build-table-" + version + "\">");
         output.write("\n<thead><tr><td>Version</td><td>Files</td></tr></thead>");
     }
 
