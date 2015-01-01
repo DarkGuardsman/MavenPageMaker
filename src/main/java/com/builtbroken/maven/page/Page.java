@@ -42,7 +42,7 @@ public class Page extends ArrayList<Version>
         output.write("\n<!--Project github https://github.com/DarkGuardsman/MavenPageMaker -->");
         output.write("\n<!--Page Created on " + new Date() + "-->");
         output.write("\n<div id=\"maven-build-div-" + version + "\" class=\"maven-downloads\">");
-        output.write("\n<h3> Minecraft " + version + "Downloads </h3>");
+        output.write("\n<h3> Minecraft " + version + " Downloads </h3>");
         output.write("\n\t<table id=\"maven-build-table-" + version + "\">");
         output.write("\n<thead><tr><td>Version</td><td>Files</td></tr></thead>");
     }
