@@ -82,8 +82,9 @@ public class Page extends ArrayList<Version>
         outputHeader(output);
 
         //Output line per line of the versions
-        for (Version line : this)
+        for (int i = size() -1; i >= 0; i--)
         {
+            Version line = get(i);
             outputVersion(output, line);
         }
 
