@@ -1,0 +1,17 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+version = "0.0.1"
+group = "com.DarkGuardsman.DarkGuardsman"
+archivesBaseName = "MavenPageMaker"
+
+sourceCompatibility = '1.6'
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.builtbroken.maven.Main'
+        attributes 'Built-With': 'Gradle v' + project.getGradle().getGradleVersion()
+    }
+}
