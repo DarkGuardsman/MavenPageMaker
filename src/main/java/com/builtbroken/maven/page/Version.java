@@ -1,5 +1,6 @@
 package com.builtbroken.maven.page;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,11 +43,13 @@ public class Version
             display_name = display_name.replace("$I", getBuilder().maven_id);
             display_name = display_name.replace("$V", "");
             display_name = display_name.replace("-", "");
+            link_name = builder.url_string + original_entry + "/" +  link_name;
             if (builder.getAdfly_id() != null)
             {
-                link_name = "http://adf.ly/" + builder.getAdfly_id() + "/";
+                link_name = link_name.replace("http://", "");
+                link_name = "adf.ly" + "/" + builder.getAdfly_id() + "/" + link_name;
             }
-            link_name = builder.url_string + link_name;
+
             html += "\n\t\t\t\t<li><a href=\"" + link_name + "\" target=\"_blank\">" + display_name + "</a></li>";
         }
         html += "\n\t\t\t</ul>\n\t\t</td>\n\t</tr>";
