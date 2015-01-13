@@ -81,7 +81,7 @@ public class PageBuilder
                     {
                         Element block = (Element) node;
                         String version_line = block.getTextContent();
-                        if (version_line.contains("-") && version_line.contains("b"))
+                        if (version_line.contains("-"))
                         {
                             Version entry = new Version(version_line);
                             entry.setBuilder(this);

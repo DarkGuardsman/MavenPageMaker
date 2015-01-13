@@ -20,8 +20,15 @@ public class Version
     {
         this.original_entry = version_line;
         setCategory(version_line.substring(0, version_line.indexOf("-")));
-        setVersion(version_line.substring(version_line.indexOf("-") + 1, version_line.indexOf("b")));
-        setBuild(version_line.substring(version_line.indexOf("b") + 1, version_line.length()));
+        if(version_line.contains("b"))
+        {
+            setVersion(version_line.substring(version_line.indexOf("-") + 1, version_line.indexOf("b")));
+            setBuild(version_line.substring(version_line.indexOf("b") + 1, version_line.length()));
+        }
+        else
+        {
+            setVersion(version_line.substring(version_line.indexOf("-") + 1, version_line.length()));
+        }
     }
 
     public String toHtml()
