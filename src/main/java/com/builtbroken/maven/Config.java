@@ -25,9 +25,10 @@ public class Config
             }
             FileOutputStream out = new FileOutputStream(file);
             props.setProperty("maven", "ci.builtbroken.com/maven");
-            props.setProperty("group", "icbm");
+            props.setProperty("group", "dev.builtbroken.icbm");
             props.setProperty("id", "ICBM");
             props.setProperty("adfly", "2380428");
+            props.setProperty("output_location", "html");
             props.store(out, "");
         } catch (FileNotFoundException e)
         {
@@ -84,4 +85,6 @@ public class Config
     {
         return props.getProperty("adfly");
     }
+
+    public String output_path() { return props.getProperty("output_location");}
 }
