@@ -24,7 +24,7 @@ public class Config
                 file.getParentFile().mkdirs();
             }
             FileOutputStream out = new FileOutputStream(file);
-            props.setProperty("maven", "http://ci.builtbroken.com/maven");
+            props.setProperty("maven", "ci.builtbroken.com/maven");
             props.setProperty("group", "icbm");
             props.setProperty("id", "ICBM");
             props.setProperty("adfly", "2380428");

@@ -39,9 +39,9 @@ public class PageBuilder
     {
         this.output_folder = output_folder;
         this.maven_url_string = (!maven_url.startsWith("http://") ? "http://" : "") + maven_url + (!maven_url.endsWith("/") ? "/" : "");
-        this.maven_group = maven_group;
+        this.maven_group = maven_group.replace(".", "/");
         this.maven_id = maven_id;
-        this.url_string = maven_url_string + maven_group + "/" + maven_id + "/";
+        this.url_string = maven_url_string + this.maven_group + "/" + this.maven_id + "/";
         file_patterns_to_load = new ArrayList();
         file_patterns_to_load.add("$I-$V.jar");
         file_patterns_to_load.add("$I-$V-deobf.jar");
