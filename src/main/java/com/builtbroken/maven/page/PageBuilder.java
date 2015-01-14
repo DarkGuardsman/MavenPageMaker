@@ -9,14 +9,10 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by robert on 1/1/2015.
@@ -27,6 +23,10 @@ public class PageBuilder
     public final String maven_url_string;
     public final String maven_group;
     public final String maven_id;
+
+    private String file_entry_template;
+    private String version_entry_template;
+
     public String adfly_id;
 
     private URL maven_xml_url = null;
@@ -126,6 +126,69 @@ public class PageBuilder
     {
         return adfly_id;
     }
+
+    public String getFileEntryTemplate()
+    {
+        if(file_entry_template == null)
+        {
+            InputStream is = this.getClass().getResourceAsStream("/templates/file.php");
+            try
+            {
+                file_entry_template = convertStreamToString(is);
+            } catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+            try
+            {
+                is.close();
+            } catch (IOException e)
+            {
+            }
+        }
+        return file_entry_template;
+    }
+
+    public String getVersionEntryTemplate()
+    {
+        if(version_entry_template == null)
+        {
+            InputStream is = this.getClass().getResourceAsStream("/templates/entry.php");
+            try
+            {
+                version_entry_template  = convertStreamToString(is);
+            } catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+            try
+            {
+                is.close();
+            } catch (IOException e)
+            {
+            }
+        }
+        return version_entry_template;
+    }
+
+    static String convertStreamToString(InputStream in) throws IOException
+    {
+
+        InputStreamReader is = new InputStreamReader(in);
+        StringBuilder sb= new StringBuilder();
+        BufferedReader br = new BufferedReader(is);
+        String read = br.readLine();
+
+        while(read != null) {
+            //System.out.println(read);
+            sb.append("\n" + read);
+            read =br.readLine();
+
+        }
+
+        return sb.toString();
+    }
+
 
     public void setAdfly_id(String adfly_id)
     {

@@ -1,8 +1,15 @@
 package com.builtbroken.maven.page;
 
-import java.io.File;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by robert on 1/1/2015.
@@ -20,7 +27,7 @@ public class Version
     {
         this.original_entry = version_line;
         setCategory(version_line.substring(0, version_line.indexOf("-")));
-        if(version_line.contains("b"))
+        if (version_line.contains("b"))
         {
             setVersion(version_line.substring(version_line.indexOf("-") + 1, version_line.indexOf("b")));
             setBuild(version_line.substring(version_line.indexOf("b") + 1, version_line.length()));
@@ -35,7 +42,7 @@ public class Version
     {
         //Turn pattern into links
         List<String> file_names = new ArrayList();
-        String html = "\n\t<tr>\n\t\t<td><span>" + getVersion() + "</span></br>#" + getBuild() +"</td><td>";
+        String html = "\n\t<tr>\n\t\t<td><span>" + getVersion() + "</span></br>#" + getBuild() + "</td><td>";
         html += "\n\t\t\t<ul>";
         for (String pattern : getBuilder().file_patterns_to_load)
         {
@@ -50,17 +57,22 @@ public class Version
             display_name = display_name.replace("$I", getBuilder().maven_id);
             display_name = display_name.replace("$V", "");
             display_name = display_name.replace("-", "");
-            link_name = builder.url_string + original_entry + "/" +  link_name;
+            link_name = getFileURLPath() + "/" + link_name;
             if (builder.getAdfly_id() != null)
             {
                 link_name = link_name.replace("http://", "");
-                link_name = "adf.ly" + "/" + builder.getAdfly_id() + "/" + link_name;
+                link_name = "http://adf.ly" + "/" + builder.getAdfly_id() + "/" + link_name;
             }
 
             html += "\n\t\t\t\t<li><a href=\"" + link_name + "\" target=\"_blank\">" + display_name + "</a></li>";
         }
         html += "\n\t\t\t</ul>\n\t\t</td>\n\t</tr>";
         return html;
+    }
+
+    public String getFileURLPath()
+    {
+        return builder.url_string + original_entry;
     }
 
 

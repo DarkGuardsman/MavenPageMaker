@@ -1,0 +1,10 @@
+<tr>
+    <td>
+        <span>#Version-#Build</span>
+    </td>
+    <td>
+        <ul>
+            #File
+        </ul>
+    </td>
+</tr>
