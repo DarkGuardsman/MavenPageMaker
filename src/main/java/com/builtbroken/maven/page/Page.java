@@ -32,37 +32,6 @@ public class Page extends ArrayList<Version>
         return false;
     }
 
-    /** Creates the top segment of the output page
-     * @param output - stream to write to
-     * @throws IOException
-     */
-    protected void outputHeader(BufferedWriter output) throws IOException
-    {
-        output.write("<!--Generated using Maven Download Page Maker by Robert Seifert-->");
-        output.write("\n<!--Project github https://github.com/DarkGuardsman/MavenPageMaker -->");
-        output.write("\n<!--Page Created on " + new Date() + "-->");
-        output.write("\n<div id=\"maven-build-div-" + version + "\" class=\"maven-downloads\">");
-        output.write("\n<h3> Minecraft " + version + " Downloads </h3>");
-        output.write("\n\t<table id=\"maven-build-table-" + version + "\">");
-        output.write("\n<thead><tr><td>Version</td><td>Files</td></tr></thead>");
-    }
-
-    public void outputVersion(BufferedWriter output, Version v) throws IOException
-    {
-        output.write("      " + v.toHtml());
-    }
-
-    /** Creates the bottom segment of the output page. Normally this comes
-     * to only some closing html tags
-     * @param output - stream to write to
-     * @throws IOException
-     */
-    protected void outputFooter(BufferedWriter output) throws IOException
-    {
-        output.write("\n</table>");
-        output.write("\n</div>");
-    }
-
     /** Called to create then write the output to disk that represents the download
      * segment for this page
      *
@@ -77,21 +46,27 @@ public class Page extends ArrayList<Version>
         {
             home.mkdirs();
         }
+        String page = builder.getPageTemplate();
+        StringBuilder b = new StringBuilder();
         BufferedWriter output = new BufferedWriter(new FileWriter(file));
-
-        outputHeader(output);
 
         //Output line per line of the versions
         for (int i = size() -1; i >= 0; i--)
         {
             Version line = get(i);
-            outputVersion(output, line);
+            b.append("\n" + builder.spacer_entry + line.toHtml());
         }
+        output.write("<!--Generated using Maven Download Page Maker by Robert Seifert-->");
+        output.write("\n<!--Project github https://github.com/DarkGuardsman/MavenPageMaker -->");
+        output.write("\n<!--Page Created on " + new Date() + "-->");
 
-        outputFooter(output);
 
+        page = page.replace("#version", version);
+        page = page.replace("#Entry", b.toString());
+        page = page.replace("#entry", b.toString());
+        output.write(page);
         output.close();
 
-        System.out.println("Outputted Download Version" + version + " HTML File To  " + file.getAbsolutePath());
+        System.out.println(version + " page added to " + file.getAbsolutePath());
     }
 }

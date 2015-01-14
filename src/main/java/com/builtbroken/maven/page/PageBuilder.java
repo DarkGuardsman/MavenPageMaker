@@ -9,10 +9,15 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by robert on 1/1/2015.
@@ -26,6 +31,8 @@ public class PageBuilder
 
     private String file_entry_template;
     private String version_entry_template;
+    private String page_template;
+    public String spacer_entry;
 
     public String adfly_id;
 
@@ -51,7 +58,7 @@ public class PageBuilder
     {
         System.out.println("Generating page for " + url_string);
         maven_xml_url = new URL(url_string + "maven-metadata.xml");
-        if(!output_folder.exists())
+        if (!output_folder.exists())
         {
             output_folder.mkdirs();
         }
@@ -63,7 +70,7 @@ public class PageBuilder
     {
         try
         {
-            Document doc = getXMLFile(url);
+            Document doc = Helpers.getXMLFile(url);
             doc.getDocumentElement().normalize();
 
             NodeList nodeList = doc.getElementsByTagName("version");
@@ -115,12 +122,7 @@ public class PageBuilder
         }
     }
 
-    public Document getXMLFile(URL url) throws ParserConfigurationException, IOException, SAXException
-    {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        return db.parse(url.openStream());
-    }
+
 
     public String getAdfly_id()
     {
@@ -129,12 +131,12 @@ public class PageBuilder
 
     public String getFileEntryTemplate()
     {
-        if(file_entry_template == null)
+        if (file_entry_template == null)
         {
             InputStream is = this.getClass().getResourceAsStream("/templates/file.php");
             try
             {
-                file_entry_template = convertStreamToString(is);
+                file_entry_template = Helpers.convertStreamToString(is);
             } catch (IOException e)
             {
                 e.printStackTrace();
@@ -151,12 +153,12 @@ public class PageBuilder
 
     public String getVersionEntryTemplate()
     {
-        if(version_entry_template == null)
+        if (version_entry_template == null)
         {
             InputStream is = this.getClass().getResourceAsStream("/templates/entry.php");
             try
             {
-                version_entry_template  = convertStreamToString(is);
+                version_entry_template = Helpers.convertStreamToString(is);
             } catch (IOException e)
             {
                 e.printStackTrace();
@@ -171,22 +173,26 @@ public class PageBuilder
         return version_entry_template;
     }
 
-    static String convertStreamToString(InputStream in) throws IOException
+    public String getPageTemplate()
     {
-
-        InputStreamReader is = new InputStreamReader(in);
-        StringBuilder sb= new StringBuilder();
-        BufferedReader br = new BufferedReader(is);
-        String read = br.readLine();
-
-        while(read != null) {
-            //System.out.println(read);
-            sb.append("\n" + read);
-            read =br.readLine();
-
+        if (page_template == null)
+        {
+            InputStream in = this.getClass().getResourceAsStream("/templates/page.php");
+            try
+            {
+                page_template = Helpers.convertStreamToString(in);
+            } catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+            try
+            {
+                in.close();
+            } catch (IOException e)
+            {
+            }
         }
-
-        return sb.toString();
+        return page_template;
     }
 
 

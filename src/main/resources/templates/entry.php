@@ -3,6 +3,9 @@
         <span>#Version-#Build</span>
     </td>
     <td>
+        #Date
+    </td>
+    <td>
         <ul>
             #File
         </ul>

@@ -1,15 +1,11 @@
 package com.builtbroken.maven.page;
 
-import java.io.BufferedReader;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by robert on 1/1/2015.
@@ -41,32 +37,62 @@ public class Version
     public String toHtml()
     {
         //Turn pattern into links
-        List<String> file_names = new ArrayList();
-        String html = "\n\t<tr>\n\t\t<td><span>" + getVersion() + "</span></br>#" + getBuild() + "</td><td>";
-        html += "\n\t\t\t<ul>";
-        for (String pattern : getBuilder().file_patterns_to_load)
+        List<String> file_names = Helpers.getFilesEndingWithOnPage(getFileURLPath(), ".jar");
+        String pom = Helpers.getPomFile(getFileURLPath());
+        StringBuilder files_string = new StringBuilder();
+        String html = builder.getVersionEntryTemplate();
+        String date = "???";
+        try
         {
-            //Creates the file link
-            String link_name = pattern;
-            link_name = link_name.replace("$I", getBuilder().maven_id);
-            link_name = link_name.replace("$V", original_entry);
+            Document doc = Helpers.getXMLFile(getFileURLPath() + pom);
+            doc.getDocumentElement().normalize();
 
 
-            //Creates display name
-            String display_name = pattern;
-            display_name = display_name.replace("$I", getBuilder().maven_id);
-            display_name = display_name.replace("$V", "");
-            display_name = display_name.replace("-", "");
-            link_name = getFileURLPath() + "/" + link_name;
-            if (builder.getAdfly_id() != null)
-            {
-                link_name = link_name.replace("http://", "");
-                link_name = "http://adf.ly" + "/" + builder.getAdfly_id() + "/" + link_name;
-            }
-
-            html += "\n\t\t\t\t<li><a href=\"" + link_name + "\" target=\"_blank\">" + display_name + "</a></li>";
         }
-        html += "\n\t\t\t</ul>\n\t\t</td>\n\t</tr>";
+        catch (ParserConfigurationException e)
+        {
+            e.printStackTrace();
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        } catch (SAXException e)
+        {
+            e.printStackTrace();
+        }
+
+        //Inject version into template
+        html = html.replace("#Version", version);
+        html = html.replace("#Build", build);
+
+        //Inject files into template
+        for(String file: file_names)
+        {
+            String file_string = builder.getFileEntryTemplate();
+            file_string = file_string.replace("#URL", "http://adf.ly/" + builder.adfly_id +"/" + getFileURLPath().replace("http://", "") + file);
+            String displayName = file;
+
+            //Clean up URL display name to remove version numbers and other junk
+            if(displayName.contains("deobf"))
+            {
+                //TODO may have to change this if more than one file contains deobf
+                displayName = "Developer.jar";
+            }
+            else
+            {
+                displayName = displayName.replace(original_entry, "");
+                displayName = displayName.replace("dev", "");
+                displayName = displayName.replace("-", "");
+            }
+            //Inject displayer name
+            file_string = file_string.replace("#Name", displayName);
+
+            //Add file entry to builder
+            files_string.append("\n" + file_string);
+        }
+
+        //Inject file string into template
+        html = html.replace("#File", files_string);
+
         return html;
     }
 
