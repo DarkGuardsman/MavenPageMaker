@@ -86,7 +86,7 @@ public class Version
         for(String file: file_names)
         {
             String file_string = builder.getFileEntryTemplate();
-            file_string = file_string.replace("#URL", "http://adf.ly/" + builder.adfly_id +"/" + getFileURLPath().replace("http://", "") + file);
+            file_string = file_string.replace("#URL", "http://adf.ly/" + builder.adfly_id +"/" + getFileURLPath().replace("http://", "") + "/" + file);
             String displayName = file;
 
             //Clean up URL display name to remove version numbers and other junk

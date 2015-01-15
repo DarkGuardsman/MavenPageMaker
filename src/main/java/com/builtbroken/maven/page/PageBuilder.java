@@ -32,7 +32,7 @@ public class PageBuilder
     private String file_entry_template;
     private String version_entry_template;
     private String page_template;
-    public String spacer_entry;
+    public String spacer_entry = "";
 
     public String adfly_id;
 

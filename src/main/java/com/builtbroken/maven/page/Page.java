@@ -54,7 +54,9 @@ public class Page extends ArrayList<Version>
         for (int i = size() -1; i >= 0; i--)
         {
             Version line = get(i);
-            b.append("\n" + builder.spacer_entry + line.toHtml());
+            String h = line.toHtml();
+            if(h != null && !h.isEmpty())
+                b.append("\n" + builder.spacer_entry + h);
         }
         output.write("<!--Generated using Maven Download Page Maker by Robert Seifert-->");
         output.write("\n<!--Project github https://github.com/DarkGuardsman/MavenPageMaker -->");
