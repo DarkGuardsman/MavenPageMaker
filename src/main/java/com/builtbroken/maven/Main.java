@@ -1,5 +1,6 @@
 package com.builtbroken.maven;
 
+import com.builtbroken.maven.page.Helpers;
 import com.builtbroken.maven.page.PageBuilder;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -15,18 +16,29 @@ public class Main
     //-maven http://ci.builtbroken.com/maven -group icbm -id ICBM -adfly 2380428
     public static void main(String... args) throws ParserConfigurationException, URISyntaxException
     {
+        File home_folder = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParentFile();
+        File html_folder = new File(home_folder, "html");
+        File settings_folder = new File(home_folder, "settings");
+
         String maven_url_string = "";
         String maven_group = "";
         String maven_id = "";
         String adfly_id = "";
-        File html_folder = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath(), "html");
-        File home_folder = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath(), "mavenPageMaker");
+        String config_path = "";
+        String html_path = "";
+
+        System.out.println("*****************************************************");
+        System.out.println("\tMaven Web Page Generator ");
+        System.out.println("\tVersion 0.3.12 ");
+        System.out.println("*****************************************************\n");
+        System.out.println("\tHome: " + home_folder);
 
         if (args != null && args.length > 0)
         {
             for (int i = 0; i < args.length; i++)
             {
                 String s = args[i];
+                //System.out.println("Program Arg[" + i +"] " + s);
                 boolean valid = (i + 1 < args.length) && !args[i + 1].contains("-");
                 String next_s = valid ? args[i + 1] : null;
                 if (s.startsWith("-"))
@@ -38,6 +50,12 @@ public class Main
                                 "you need to add some arguments. This way we can build " +
                                 "the page information correctly.\n\n");
                         System.out.println("Valid program arguments");
+                        System.out.println("-Config  -> optional, Sets the path to the config file (ex ../mavenPageMaker/Settings.config");
+                        System.out.println("-html  -> optional, Sets the path to the output html folder");
+                        System.out.println("-Maven  -> Sets the maven url (ex www.mypage.com/maven");
+                        System.out.println("-group  -> Sub path to the maven (ex com.mypage.projectarea");
+                        System.out.println("-id  -> identifing name of the maven (ex projectname");
+                        System.out.println("-adfly  -> optional, account ID to add an adfly url to the front of the download links");
                         System.exit(0);
                     }
                     else if (next_s != null)
@@ -49,6 +67,14 @@ public class Main
                         if (var.equalsIgnoreCase("maven"))
                         {
                             maven_url_string = next_s;
+                        }
+                        else if (var.equalsIgnoreCase("config"))
+                        {
+                            config_path = next_s;
+                        }
+                        else if (var.equalsIgnoreCase("html"))
+                        {
+                            html_path = next_s;
                         }
                         else if (var.equalsIgnoreCase("group"))
                         {
@@ -70,46 +96,45 @@ public class Main
                 }
             }
         }
+        if (!settings_folder.exists())
+        {
+            settings_folder.mkdirs();
+        }
+
+        File config_file = null;
+        if (config_path != null && !config_path.isEmpty())
+        {
+            config_file = Helpers.getFileFromString(home_folder, config_path);
+            if(!config_file.isFile())
+                config_file = new File(config_file, "settings.config");
+        }
         else
         {
-            if (!home_folder.exists())
-            {
-                home_folder.mkdirs();
-            }
-            System.out.println("Searching " + home_folder + " for configs");
-            Config config = new Config(new File(home_folder, "settings.config"));
-            if (!config.load())
-            {
-                config.create();
-            }
-            maven_url_string = config.maven_url_string();
-            maven_id = config.maven_id();
-            maven_group = config.maven_group();
-            adfly_id = config.adfly_id();
-            String html_path = config.output_path();
-            if (html_path == null || html_path.isEmpty())
-            {
-                System.out.println("File path in the config can not be empty");
-                System.exit(-1);
-            }
-            else if (html_path.startsWith("../"))
-            {
-               html_folder = home_folder.getParentFile();
-               for( int i = 1; i < html_path.split("../").length; i++)
-               {
-                   html_folder = html_folder.getParentFile();
-               }
-                html_folder = new File(html_folder, html_path.replace("../", ""));
-            }
-            else if (html_path.substring(1, html_path.length()).startsWith(":/"))
-            {
-                html_folder = new File(html_path);
-            }
-            else
-            {
-                html_folder = new File(home_folder.getParent(), html_path);
-            }
+            config_file = new File(settings_folder, "settings.config");
         }
+        System.out.println("\tConfig: " + config_file.getAbsolutePath());
+
+        Config config = new Config(config_file);
+        if (!config.load())
+        {
+            config.create();
+        }
+
+        //Program arguments override configs
+        if (maven_url_string == null || maven_url_string.isEmpty())
+            maven_url_string = config.maven_url_string();
+        if (maven_id == null || maven_id.isEmpty())
+            maven_id = config.maven_id();
+        if (maven_group == null || maven_group.isEmpty())
+            maven_group = config.maven_group();
+        if (adfly_id == null || adfly_id.isEmpty())
+            adfly_id = config.adfly_id();
+        if (html_path == null || html_path.isEmpty())
+            html_path = config.output_path();
+
+
+        if (html_path != null && !html_path.isEmpty())
+            html_folder = Helpers.getFileFromString(home_folder, html_path);
 
         PageBuilder build = new PageBuilder(html_folder, maven_url_string, maven_group, maven_id);
         if (adfly_id != null && !adfly_id.isEmpty())
@@ -120,8 +145,10 @@ public class Main
             build.buildPage();
         } catch (MalformedURLException e)
         {
-            System.out.println("Bad URL");
+            System.out.println("\tError: Malformed URL Exception");
             e.printStackTrace();
+            System.exit(-1);
         }
+        System.out.println("\n*****************************************************");
     }
 }

@@ -67,6 +67,6 @@ public class Page extends ArrayList<Version>
         output.write(page);
         output.close();
 
-        System.out.println(version + " page added to " + file.getAbsolutePath());
+        System.out.println("\t\tNew Page: " + file.getAbsolutePath());
     }
 }

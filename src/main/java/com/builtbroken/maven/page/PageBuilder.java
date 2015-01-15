@@ -56,14 +56,13 @@ public class PageBuilder
 
     public void buildPage() throws MalformedURLException
     {
-        System.out.println("Generating page for " + url_string);
+        System.out.println("\tXML: " + url_string + "maven-metadata.xml");
         maven_xml_url = new URL(url_string + "maven-metadata.xml");
         if (!output_folder.exists())
         {
             output_folder.mkdirs();
         }
         buildHtmlTable(maven_xml_url);
-        System.out.println("Done!");
     }
 
     public void buildHtmlTable(URL url)

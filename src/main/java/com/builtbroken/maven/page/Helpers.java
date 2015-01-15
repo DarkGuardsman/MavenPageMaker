@@ -6,10 +6,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -120,13 +117,14 @@ public class Helpers
     public static String convertStreamToString(InputStream in) throws IOException
     {
         InputStreamReader is = new InputStreamReader(in);
-        StringBuilder sb= new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         BufferedReader br = new BufferedReader(is);
         String read = br.readLine();
 
-        while(read != null) {
+        while (read != null)
+        {
             sb.append("\n" + read);
-            read =br.readLine();
+            read = br.readLine();
         }
 
         return sb.toString();
@@ -139,10 +137,11 @@ public class Helpers
 
     /**
      * Gets an XML file from an url
+     *
      * @param url - url
      * @return Document that is an XML file
      * @throws ParserConfigurationException - thrown if the document can not be parsed as an XML
-     * @throws IOException - thrown if the URL can not be opened
+     * @throws IOException                  - thrown if the URL can not be opened
      * @throws SAXException
      */
     public static Document getXMLFile(URL url) throws ParserConfigurationException, IOException, SAXException
@@ -150,5 +149,34 @@ public class Helpers
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = dbf.newDocumentBuilder();
         return db.parse(url.openStream());
+    }
+
+    public static File getFileFromString(File home, String file_path)
+    {
+        File file = null;
+        if (home == null || file_path == null || file_path == "")
+        {
+            return null;
+        } //Go up a few folders
+        else if (file_path.startsWith("../"))
+        {
+            file = home.getParentFile();
+            String f = file_path.replaceFirst("../", "");
+            while(f.startsWith("../"))
+            {
+                file = file.getParentFile();
+                f = f.replace("../", "");
+            }
+            file = new File(file, f);
+        } //If the path is absolute make new folder
+        else if (file_path.substring(1, file_path.length()).startsWith(":/"))
+        {
+            file = new File(file_path);
+        } //Anything else just add the path to the end of the home folder
+        else
+        {
+            file = new File(home, file_path);
+        }
+        return file;
     }
 }
