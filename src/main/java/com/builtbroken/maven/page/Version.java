@@ -1,6 +1,8 @@
 package com.builtbroken.maven.page;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -44,10 +46,24 @@ public class Version
         String date = "???";
         try
         {
-            Document doc = Helpers.getXMLFile(getFileURLPath() + pom);
+            Document doc = Helpers.getXMLFile(getFileURLPath() + "/" + pom);
             doc.getDocumentElement().normalize();
+            NodeList nodeList = doc.getElementsByTagName("description");
+            if (nodeList != null && nodeList.getLength() > 0)
+            {
+                String s = nodeList.item(0).getTextContent();
 
+                s = s.replace("Created on ", "");
+                //2015 01 14 17 55 43
+                String year = s.substring(0, 4);
+                String month = s.substring(4, 6);
+                String day = s.substring(6, 8);
+                String hour = s.substring(8, 10);
+                String min = s.substring(10, 12);
+                String sec = s.substring(12, 14);
 
+                date = month + "/" + day + "/" + year + "  " + hour + ":" + min;
+            }
         }
         catch (ParserConfigurationException e)
         {
@@ -59,6 +75,8 @@ public class Version
         {
             e.printStackTrace();
         }
+
+        html = html.replace("#Date", date);
 
         //Inject version into template
         html = html.replace("#Version", version);
