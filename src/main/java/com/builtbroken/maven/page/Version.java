@@ -14,10 +14,10 @@ import java.util.List;
  */
 public class Version
 {
-    private String category;
-    private String version;
-    private String build;
-    private String original_entry;
+    private String category = "";
+    private String version = "";
+    private String build = "";
+    private String original_entry = "";
     private PageBuilder builder;
     private Page page;
 
