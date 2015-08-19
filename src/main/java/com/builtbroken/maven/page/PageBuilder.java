@@ -6,8 +6,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
@@ -24,15 +22,25 @@ import java.util.List;
  */
 public class PageBuilder
 {
-    public final String url_string;
-    public final String maven_url_string;
+    //Maven info
     public final String maven_group;
     public final String maven_id;
+
+    //Primary maven URL data
+    public final String url_string;
+    public final String maven_url_string;
+
+    //Secondary maven URL data
+    public final String maven_url_string2;
+    public final String url_string2;
 
     private String file_entry_template;
     private String version_entry_template;
     private String page_template;
     public String spacer_entry = "";
+    public String build_separator = "b";
+    public String[] filesToUse = null;
+    public boolean prefixedWithCatigory = true;
 
     public String adfly_id;
 
@@ -42,13 +50,18 @@ public class PageBuilder
 
     private File output_folder;
 
-    public PageBuilder(File output_folder, String maven_url, String maven_group, String maven_id)
+    public PageBuilder(File output_folder, String maven_url, String maven_url_alt, String maven_group, String maven_id)
     {
-        this.output_folder = output_folder;
-        this.maven_url_string = (!maven_url.startsWith("http://") ? "http://" : "") + maven_url + (!maven_url.endsWith("/") ? "/" : "");
         this.maven_group = maven_group.replace(".", "/");
         this.maven_id = maven_id;
+        this.output_folder = output_folder;
+
+        this.maven_url_string = (!maven_url.startsWith("http") ? "http://" : "") + maven_url + (!maven_url.endsWith("/") ? "/" : "");
         this.url_string = maven_url_string + this.maven_group + "/" + this.maven_id + "/";
+
+        this.maven_url_string2 = (!maven_url_alt.startsWith("http") ? "http://" : "") + maven_url_alt + (!maven_url_alt.endsWith("/") ? "/" : "");
+        this.url_string2 = maven_url_string2 + this.maven_group + "/" + this.maven_id + "/";
+
         file_patterns_to_load = new ArrayList();
         file_patterns_to_load.add("$I-$V.jar");
         file_patterns_to_load.add("$I-$V-deobf.jar");
@@ -62,20 +75,40 @@ public class PageBuilder
         {
             output_folder.mkdirs();
         }
-        buildHtmlTable(maven_xml_url);
+        try
+        {
+            buildHtmlTable(maven_xml_url);
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+            System.out.println();
+            System.out.println();
+            System.out.println("\tXML2: " + url_string2 + "maven-metadata.xml");
+            maven_xml_url = new URL(url_string2 + "maven-metadata.xml");
+            try
+            {
+                buildHtmlTable(maven_xml_url);
+            } catch (Exception e2)
+            {
+                e2.printStackTrace();
+            }
+        }
+
     }
 
-    public void buildHtmlTable(URL url)
+    public void buildHtmlTable(URL url) throws IOException
     {
+        System.out.println("\n\tStarting to build HTML table");
         try
         {
             Document doc = Helpers.getXMLFile(url);
             doc.getDocumentElement().normalize();
 
             NodeList nodeList = doc.getElementsByTagName("version");
+
             if (nodeList != null)
             {
-
+                System.out.println("\tFound " + nodeList.getLength() + " version elements in XML");
                 // Map of major versions to list of sub versions
                 HashMap<String, Page> version_map = new HashMap();
 
@@ -83,28 +116,30 @@ public class PageBuilder
                 for (int b = 1; b < nodeList.getLength(); b++)
                 {
                     Node node = nodeList.item(b);
+
                     if (node.getNodeType() == Node.ELEMENT_NODE)
                     {
                         Element block = (Element) node;
                         String version_line = block.getTextContent();
-                        if (version_line.contains("-"))
+                        System.out.println("\tEntry[" + b + "] = " + version_line);
+
+                        Version entry = new Version(this, version_line);
+                        System.out.println("\t\tVersion: " + entry.getVersion() + " Build: " + entry.getBuild());
+                        System.out.println("\t\tFolder: " + entry.getFileURLPath());
+                        if (!version_map.containsKey(entry.getCategory()))
                         {
-                            Version entry = new Version(version_line);
-                            entry.setBuilder(this);
-                            if (!version_map.containsKey(entry.getCategory()))
-                            {
-                                version_map.put(entry.getCategory(), new Page(this, entry.getCategory()));
-                            }
-                            version_map.get(entry.getCategory()).add(entry);
+                            version_map.put(entry.getCategory(), new Page(this, entry.getCategory()));
                         }
+                        version_map.get(entry.getCategory()).add(entry);
                     }
                 }
                 makeHtmlFile(version_map.values());
             }
+            else
+            {
+                System.out.println("Error node list for version returned null");
+            }
         } catch (ParserConfigurationException e)
-        {
-            e.printStackTrace();
-        } catch (IOException e)
         {
             e.printStackTrace();
         } catch (SAXException e)
@@ -120,7 +155,6 @@ public class PageBuilder
             page.outputToFile(output_folder);
         }
     }
-
 
 
     public String getAdfly_id()

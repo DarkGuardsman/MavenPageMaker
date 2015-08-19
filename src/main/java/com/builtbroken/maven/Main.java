@@ -26,6 +26,7 @@ public class Main
         String adfly_id = "";
         String config_path = "";
         String html_path = "";
+        String build_separator = "";
 
         System.out.println("*****************************************************");
         System.out.println("\tMaven Web Page Generator ");
@@ -38,7 +39,7 @@ public class Main
             for (int i = 0; i < args.length; i++)
             {
                 String s = args[i];
-                //System.out.println("Program Arg[" + i +"] " + s);
+                System.out.println("Program Arg[" + i + "] " + s);
                 boolean valid = (i + 1 < args.length) && !args[i + 1].contains("-");
                 String next_s = valid ? args[i + 1] : null;
                 if (s.startsWith("-"))
@@ -105,7 +106,7 @@ public class Main
         if (config_path != null && !config_path.isEmpty())
         {
             config_file = Helpers.getFileFromString(home_folder, config_path);
-            if(!config_file.isFile())
+            if (!config_file.isFile())
                 config_file = new File(config_file, "settings.config");
         }
         else
@@ -131,14 +132,20 @@ public class Main
             adfly_id = config.adfly_id();
         if (html_path == null || html_path.isEmpty())
             html_path = config.output_path();
+        if (build_separator == null || build_separator.isEmpty())
+            build_separator = config.build_separator();
 
 
         if (html_path != null && !html_path.isEmpty())
             html_folder = Helpers.getFileFromString(home_folder, html_path);
 
-        PageBuilder build = new PageBuilder(html_folder, maven_url_string, maven_group, maven_id);
+        PageBuilder build = new PageBuilder(html_folder, maven_url_string, config.alt_maven_url_string(), maven_group, maven_id);
         if (adfly_id != null && !adfly_id.isEmpty())
             build.setAdfly_id(adfly_id);
+        if (build_separator != null && !build_separator.isEmpty())
+            build.build_separator = build_separator;
+        build.prefixedWithCatigory = config.prefixed_catigory();
+        build.filesToUse = config.files();
 
         try
         {

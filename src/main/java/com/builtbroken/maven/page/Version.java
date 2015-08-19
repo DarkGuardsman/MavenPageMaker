@@ -1,12 +1,15 @@
 package com.builtbroken.maven.page;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,36 +20,180 @@ public class Version
     private String category = "";
     private String version = "";
     private String build = "";
-    private String original_entry = "";
+    private String originalVersionString = "";
     private PageBuilder builder;
     private Page page;
 
-    public Version(String version_line)
+    public Version(PageBuilder builder, String version_line)
     {
-        this.original_entry = version_line;
-        setCategory(version_line.substring(0, version_line.indexOf("-")));
-        if (version_line.contains("b"))
+        this.builder = builder;
+        this.originalVersionString = version_line;
+        int index = 0;
+        if (builder.prefixedWithCatigory)
         {
-            setVersion(version_line.substring(version_line.indexOf("-") + 1, version_line.indexOf("b")));
-            setBuild(version_line.substring(version_line.indexOf("b") + 1, version_line.length()));
+            setCategory(version_line.substring(0, version_line.indexOf("-")));
+            index = version_line.indexOf("-") + 1;
+        }
+        if (version_line.contains(builder.build_separator))
+        {
+            setVersion(version_line.substring(index, version_line.lastIndexOf(builder.build_separator)));
+            setBuild(version_line.substring(version_line.lastIndexOf(builder.build_separator) + 1, version_line.length()));
         }
         else
         {
-            setVersion(version_line.substring(version_line.indexOf("-") + 1, version_line.length()));
+            setVersion(version_line.substring(index, version_line.length()));
         }
+
     }
 
     public String toHtml()
     {
+        System.out.println("\tBuilding html for version " + originalVersionString);
         //Turn pattern into links
-        List<String> file_names = Helpers.getFilesEndingWithOnPage(getFileURLPath(), ".jar");
-        String pom = Helpers.getPomFile(getFileURLPath());
+        List<String> file_names;
+        if (builder.filesToUse != null)
+        {
+            file_names = new ArrayList();
+            for (String s : builder.filesToUse)
+            {
+                file_names.add(builder.maven_id + "-" + originalVersionString + s);
+            }
+        }
+        else
+        {
+            file_names = Helpers.getFilesEndingWithOnPage(getFileURLPath(), ".jar");
+        }
+
         StringBuilder files_string = new StringBuilder();
         String html = builder.getVersionEntryTemplate();
-        String date = "???";
+        String date = null;
         try
         {
-            Document doc = Helpers.getXMLFile(getFileURLPath() + "/" + pom);
+            date = getDataFromPom(getFileURLPath());
+        } catch (FileNotFoundException e2)
+        {
+            //No pom normally means no other files
+            System.out.println("\t\tPom file not found");
+            return null;
+        } catch (IOException e)
+        {
+            if (e.getMessage().contains("Server returned HTTP response code: 403 for URL"))
+            {
+                try
+                {
+                    date = getDataFromPom(builder.url_string2 + originalVersionString);
+                } catch (FileNotFoundException e2)
+                {
+                    //No pom normally means no other files
+                    System.out.println("\t\tPom file not found");
+                    return null;
+                } catch (IOException e2)
+                {
+                    if (e2.getMessage().contains("Server returned HTTP response code: 403 for URL"))
+                    {
+                        System.out.println(e2.getMessage());
+                        //https://calclavia.s3.amazonaws.com/maven/universalelectricity/Universal-Electricity/3.1.0.75/Universal-Electricity-3.1.0.75.pom
+                    }
+                    else
+                    {
+                        e2.printStackTrace();
+                    }
+                }
+
+            }
+            else
+            {
+                e.printStackTrace();
+            }
+        }
+
+        html = html.replace("#Date", date == null ? "Unknown" : date);
+
+        //Inject version into template
+        html = html.replace("#Version", version);
+        html = html.replace("#Build", build);
+
+        //Inject files into template
+        int missingFilesCount = 0;
+        for (String file : file_names)
+        {
+            String file_string = builder.getFileEntryTemplate();
+            String originalFileURL = getFileURLPath() + "/" + file;
+            if (!exists(originalFileURL))
+            {
+                originalFileURL = getFileURLPath2() + "/" + file;
+                if (!exists(originalFileURL))
+                {
+                    missingFilesCount += 1;
+                    System.out.println("\t\tFile not found " + file);
+                    continue;
+                }
+            }
+            if (builder.adfly_id != null && !builder.adfly_id.isEmpty())
+            {
+                file_string = file_string.replace("#URL", "http://adf.ly/" + builder.adfly_id + "/" + originalFileURL.replace("https://", "").replace("http://", ""));
+            }
+            else
+            {
+                file_string = file_string.replace("#URL", originalFileURL);
+
+            }
+            String displayName = file;
+
+            //Clean up URL display name to remove version numbers and other junk
+            if (displayName.contains("deobf"))
+            {
+                //TODO may have to change this if more than one file contains deobf
+                displayName = "Developer.jar";
+            }
+            else
+            {
+                displayName = displayName.replace(originalVersionString, "");
+                displayName = displayName.replace("dev", "");
+                displayName = displayName.replace("-", "");
+            }
+            //Inject displayer name
+            file_string = file_string.replace("#Name", displayName);
+
+            //Add file entry to builder
+            files_string.append("\n" + file_string);
+        }
+
+        if (missingFilesCount == file_names.size())
+        {
+            System.out.println("\t\tNot files found for " + originalVersionString);
+            return null;
+        }
+        //Inject file string into template
+        html = html.replace("#File", files_string);
+
+        return html;
+    }
+
+    public static boolean exists(String URLName)
+    {
+        try
+        {
+            HttpURLConnection.setFollowRedirects(false);
+            // note : you may also need
+            //        HttpURLConnection.setInstanceFollowRedirects(false)
+            HttpURLConnection con =
+                    (HttpURLConnection) new URL(URLName).openConnection();
+            con.setRequestMethod("HEAD");
+            return (con.getResponseCode() == HttpURLConnection.HTTP_OK);
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private String getDataFromPom(String path) throws IOException
+    {
+        try
+        {
+            String pom = builder.maven_id + "-" + originalVersionString + ".pom";
+            Document doc = Helpers.getXMLFile(path + "/" + pom);
             doc.getDocumentElement().normalize();
             NodeList nodeList = doc.getElementsByTagName("description");
             if (nodeList != null && nodeList.getLength() > 0)
@@ -60,63 +207,28 @@ public class Version
                 String day = s.substring(6, 8);
                 String hour = s.substring(8, 10);
                 String min = s.substring(10, 12);
-                String sec = s.substring(12, 14);
+                //String sec = s.substring(12, 14);
 
-                date = month + "/" + day + "/" + year + "  " + hour + ":" + min;
+                return month + "/" + day + "/" + year + "  " + hour + ":" + min;
             }
-        }
-        catch (ParserConfigurationException e)
-        {
-            e.printStackTrace();
-        } catch (IOException e)
+        } catch (ParserConfigurationException e)
         {
             e.printStackTrace();
         } catch (SAXException e)
         {
             e.printStackTrace();
         }
-
-        html = html.replace("#Date", date);
-
-        //Inject version into template
-        html = html.replace("#Version", version);
-        html = html.replace("#Build", build);
-
-        //Inject files into template
-        for(String file: file_names)
-        {
-            String file_string = builder.getFileEntryTemplate();
-            file_string = file_string.replace("#URL", "http://adf.ly/" + builder.adfly_id +"/" + getFileURLPath().replace("http://", "") + "/" + file);
-            String displayName = file;
-
-            //Clean up URL display name to remove version numbers and other junk
-            if(displayName.contains("deobf"))
-            {
-                //TODO may have to change this if more than one file contains deobf
-                displayName = "Developer.jar";
-            }
-            else
-            {
-                displayName = displayName.replace(original_entry, "");
-                displayName = displayName.replace("dev", "");
-                displayName = displayName.replace("-", "");
-            }
-            //Inject displayer name
-            file_string = file_string.replace("#Name", displayName);
-
-            //Add file entry to builder
-            files_string.append("\n" + file_string);
-        }
-
-        //Inject file string into template
-        html = html.replace("#File", files_string);
-
-        return html;
+        return null;
     }
 
     public String getFileURLPath()
     {
-        return builder.url_string + original_entry;
+        return builder.url_string + originalVersionString;
+    }
+
+    public String getFileURLPath2()
+    {
+        return builder.url_string2 + originalVersionString;
     }
 
 
@@ -154,14 +266,14 @@ public class Version
         this.build = build;
     }
 
-    public String getOriginal_entry()
+    public String getOriginalVersionString()
     {
-        return original_entry;
+        return originalVersionString;
     }
 
-    public void setOriginal_entry(String original_entry)
+    public void setOriginalVersionString(String originalVersionString)
     {
-        this.original_entry = original_entry;
+        this.originalVersionString = originalVersionString;
     }
 
     public PageBuilder getBuilder()

@@ -24,7 +24,7 @@ public class Page extends ArrayList<Version>
     @Override
     public boolean add(Version e)
     {
-        if(super.add(e))
+        if (super.add(e))
         {
             e.setPage(this);
             return true;
@@ -32,7 +32,8 @@ public class Page extends ArrayList<Version>
         return false;
     }
 
-    /** Called to create then write the output to disk that represents the download
+    /**
+     * Called to create then write the output to disk that represents the download
      * segment for this page
      *
      * @param output_folder - location to output the file in
@@ -41,8 +42,8 @@ public class Page extends ArrayList<Version>
     public synchronized void outputToFile(File output_folder) throws IOException
     {
         File home = new File(output_folder, "downloads");
-        File file = new File(home, "downloads-" + version + ".php");
-        if(!home.exists())
+        File file = new File(home, (version != null && !version.isEmpty() ? "downloads-" + version : "downloads") + ".php");
+        if (!home.exists())
         {
             home.mkdirs();
         }
@@ -51,11 +52,11 @@ public class Page extends ArrayList<Version>
         BufferedWriter output = new BufferedWriter(new FileWriter(file));
 
         //Output line per line of the versions
-        for (int i = size() -1; i >= 0; i--)
+        for (int i = size() - 1; i >= 0; i--)
         {
             Version line = get(i);
             String h = line.toHtml();
-            if(h != null && !h.isEmpty())
+            if (h != null && !h.isEmpty())
                 b.append("\n" + builder.spacer_entry + h);
         }
         output.write("<!--Generated using Maven Download Page Maker by Robert Seifert-->");
