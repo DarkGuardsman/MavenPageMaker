@@ -48,7 +48,7 @@ public class PageBuilder
 
     public List<String> file_patterns_to_load;
 
-    private File output_folder;
+    public File output_folder;
 
     public PageBuilder(File output_folder, String maven_url, String maven_url_alt, String maven_group, String maven_id)
     {

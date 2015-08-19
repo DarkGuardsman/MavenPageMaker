@@ -129,6 +129,25 @@ public class Version
                     continue;
                 }
             }
+
+            /*
+            try
+            {
+                File parent = new File(builder.output_folder.getParent() + "/" + builder.maven_id);
+                File fileFile = new File(parent, file);
+                if (!parent.exists())
+                    parent.mkdirs();
+                if (!fileFile.exists())
+                {
+                    URL website = new URL(originalFileURL);
+                    ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+                    FileOutputStream fos = new FileOutputStream(fileFile);
+                    fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                }
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            } */
             if (builder.adfly_id != null && !builder.adfly_id.isEmpty())
             {
                 file_string = file_string.replace("#URL", "http://adf.ly/" + builder.adfly_id + "/" + originalFileURL.replace("https://", "").replace("http://", ""));
