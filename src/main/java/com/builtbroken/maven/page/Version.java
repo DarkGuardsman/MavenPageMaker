@@ -29,10 +29,14 @@ public class Version
         this.builder = builder;
         this.originalVersionString = version_line;
         int index = 0;
-        if (builder.prefixedWithCatigory)
+        if (builder.prefixedWithCatigory && version_line.indexOf("-") != -1)
         {
-            setCategory(version_line.substring(0, version_line.indexOf("-")));
             index = version_line.indexOf("-") + 1;
+            setCategory(version_line.substring(0, version_line.indexOf("-")));
+        }
+        else
+        {
+            System.out.println("Version line '" + version_line + "' was not prefixed with anything ending in - ");
         }
         if (version_line.contains(builder.build_separator))
         {
