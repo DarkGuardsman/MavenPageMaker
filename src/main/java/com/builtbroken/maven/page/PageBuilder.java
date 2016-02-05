@@ -113,7 +113,7 @@ public class PageBuilder
                 HashMap<String, Page> version_map = new HashMap();
 
                 //Loop threw all version elements
-                for (int b = 1; b < nodeList.getLength(); b++)
+                for (int b = 0; b < nodeList.getLength(); b++)
                 {
                     Node node = nodeList.item(b);
 
